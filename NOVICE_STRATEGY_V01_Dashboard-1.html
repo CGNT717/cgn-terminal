@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>NOVICE STRATEGY V.01</title>
+<style>
+/* ── SYSTEM FONTS ONLY — no external font calls ── */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080b0e;--pan:#0d1117;
+  --brd:#1a2332;--brdB:#243040;
+  --cy:#00d4ff;--cyD:#0088aa;
+  --gn:#00ff88;--gnD:#00aa55;
+  --rd:#ff3355;--rdD:#aa1133;
+  --gd:#ffcc00;--gdD:#aa8800;
+  --or:#ff7700;
+  --tx:#c8d8e8;--txD:#4a6070;--txM:#8aa0b0;
+  --fMono:'Share Tech Mono',Consolas,'Courier New',monospace;
+  --fHead:'Rajdhani','Arial Narrow',Arial,sans-serif;
+  --fOrb:'Orbitron','Arial Black',Arial,sans-serif;
+}
+body{background:var(--bg);color:var(--tx);font-family:var(--fHead);font-size:15px;min-height:100vh;padding:8px;max-width:460px;margin:0 auto;}
+input,select,button{font-family:var(--fHead);font-size:14px;}
+select{-webkit-appearance:none;appearance:none;}
+
+/* TOP BAR */
+#topBar{background:var(--pan);border:1px solid var(--brdB);border-top:3px solid var(--cy);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+#logo{font-family:var(--fOrb);font-size:14px;font-weight:900;color:var(--cy);letter-spacing:2px;}
+#logoSub{font-family:var(--fMono);font-size:9px;color:var(--txD);letter-spacing:2px;margin-top:2px;}
+#clock{font-family:var(--fOrb);font-size:22px;color:var(--cy);letter-spacing:2px;text-align:right;}
+#dateDisp{font-family:var(--fMono);font-size:10px;color:var(--tx);letter-spacing:1px;margin-top:2px;text-align:right;}
+#tzDisp{font-family:var(--fMono);font-size:9px;color:var(--txD);letter-spacing:2px;text-align:right;}
+
+/* CREDIT BAR */
+#credBar{background:var(--pan);border:1px solid var(--brd);padding:7px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;}
+#credLeft{font-family:var(--fMono);font-size:10px;color:var(--txD);letter-spacing:1px;}
+.credUsed{color:var(--cy);font-family:var(--fOrb);font-size:11px;}
+.credRem{font-family:var(--fOrb);font-size:11px;}
+.credGood{color:var(--gn);}.credWarn{color:var(--gd);}.credLow{color:var(--rd);}
+.credMid{font-family:var(--fMono);font-size:9px;color:var(--txD);}
+
+/* PROXY STRIP */
+#proxyStrip{background:var(--pan);border:1px solid var(--brdB);border-top:2px solid var(--cyD);padding:8px 14px;margin-bottom:6px;}
+.proxyRow{display:flex;justify-content:space-between;align-items:center;gap:4px;}
+.pxItem{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.pxLbl{font-family:var(--fMono);font-size:9px;font-weight:700;letter-spacing:2px;color:var(--txD);}
+.pxTag{font-family:var(--fMono);font-size:7px;color:var(--txD);opacity:0.5;}
+.pxVal{font-family:var(--fOrb);font-size:13px;font-weight:700;color:var(--txD);}
+.pxDir{font-family:var(--fMono);font-size:9px;color:var(--txD);}
+.pxUp{color:var(--gn);}.pxDn{color:var(--rd);}.pxFl{color:var(--txD);}
+.mDiv{width:1px;height:40px;background:var(--brd);}
+.proxyBtm{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.proxyRefBtn{background:rgba(0,212,255,0.07);border:1px solid var(--cyD);color:var(--cy);font-family:var(--fMono);font-size:9px;padding:6px 16px;cursor:pointer;letter-spacing:1px;}
+.proxyRefBtn:active{background:rgba(0,212,255,0.18);}
+#proxyTs{font-family:var(--fMono);font-size:8px;color:var(--txD);}
+
+/* USD BIAS */
+#biasBar{background:var(--pan);border:1px solid var(--brd);padding:9px 14px;margin-bottom:6px;}
+#biasLbl{font-family:var(--fMono);font-size:9px;letter-spacing:2px;color:var(--txD);margin-bottom:4px;}
+.biasTop{display:flex;justify-content:space-between;align-items:flex-start;}
+#biasVal{font-family:var(--fOrb);font-size:14px;font-weight:700;color:var(--txD);}
+#biasSub{font-family:var(--fMono);font-size:9px;color:var(--txD);margin-top:4px;}
+.biasInds{display:flex;gap:14px;align-items:center;flex-shrink:0;}
+.biasInd{text-align:center;}
+.biIndLbl{font-family:var(--fMono);font-size:8px;color:var(--txD);}
+.biIndVal{font-family:var(--fOrb);font-size:12px;font-weight:700;margin-top:3px;color:var(--txD);}
+
+/* SESSION TABS */
+#sessionBlock{margin-bottom:6px;}
+#sessHdr{font-family:var(--fMono);font-size:9px;letter-spacing:2px;color:var(--txD);padding:0 2px 4px;}
+#tabGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
+.tab{background:var(--pan);border:1px solid var(--brd);padding:10px 6px;cursor:pointer;text-align:center;transition:all 0.2s;-webkit-tap-highlight-color:transparent;}
+.tab.active{background:rgba(0,212,255,0.07);border-color:var(--cy);border-bottom:2px solid var(--cy);}
+.tabName{font-family:var(--fOrb);font-size:11px;font-weight:900;letter-spacing:2px;color:var(--txD);}
+.tab.active .tabName{color:var(--cy);}
+.tabPairs{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:3px;}
+.tab.flash{animation:tabFlash 0.35s ease;}
+@keyframes tabFlash{0%{border-color:var(--cy);background:rgba(0,212,255,0.18);}100%{}}
+
+/* PAIR SELECTOR */
+#pairBlock{background:var(--pan);border:1px solid var(--brd);padding:10px 14px;margin-bottom:6px;}
+#pairLbl{font-family:var(--fMono);font-size:9px;letter-spacing:2px;color:var(--txD);margin-bottom:8px;}
+#pairGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pChk{background:#050709;border:1px solid var(--brd);padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.2s;-webkit-tap-highlight-color:transparent;}
+.pChk.on{background:rgba(0,212,255,0.07);border-color:var(--cy);}
+.pBox{width:14px;height:14px;border:1px solid var(--txD);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pChk.on .pBox{border-color:var(--cy);background:rgba(0,212,255,0.15);}
+.pTick{font-family:var(--fMono);font-size:10px;color:var(--cy);display:none;}
+.pChk.on .pTick{display:block;}
+.pName{font-family:var(--fOrb);font-size:12px;font-weight:700;color:var(--txD);}
+.pChk.on .pName{color:var(--cy);}
+.pSess{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:2px;}
+#pairNote{font-family:var(--fMono);font-size:9px;color:var(--txD);margin-top:8px;}
+
+/* API KEY */
+#apiSec{background:var(--pan);border:1px solid var(--brdB);padding:12px 14px;margin-bottom:0;}
+.apiHdr{font-family:var(--fMono);font-size:10px;font-weight:700;letter-spacing:2px;color:var(--txD);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+#savedBadge{background:rgba(0,255,136,0.12);border:1px solid var(--gnD);color:var(--gn);font-family:var(--fMono);font-size:9px;padding:3px 8px;letter-spacing:1px;display:none;}
+.apiRow{display:flex;gap:6px;}
+#apiInp{flex:1;background:#050709;border:1px solid var(--brdB);color:var(--cy);font-family:var(--fMono);font-size:12px;padding:10px 12px;outline:none;letter-spacing:1px;}
+#apiInp:focus{border-color:var(--cy);}
+#btnSave{background:rgba(0,212,255,0.08);border:1px solid var(--cy);color:var(--cy);font-family:var(--fOrb);font-size:9px;font-weight:700;letter-spacing:2px;padding:0 16px;cursor:pointer;white-space:nowrap;}
+#btnSave.saved{background:rgba(0,255,136,0.12);border-color:var(--gn);color:var(--gn);}
+.apiNote{font-family:var(--fMono);font-size:9px;color:var(--txD);margin-top:7px;}
+
+/* SCAN */
+#scanOuter{margin-bottom:6px;}
+#scanRow{display:flex;gap:6px;}
+#scanWrap{flex:1;background:#050709;border:1px solid var(--brdB);border-top:none;position:relative;overflow:hidden;min-height:50px;display:flex;align-items:center;padding:0 14px;}
+#scanFill{position:absolute;top:0;left:0;height:100%;background:rgba(0,212,255,0.05);width:0%;transition:width 0.3s linear;}
+#scanLog{font-family:var(--fMono);font-size:11px;color:var(--txD);position:relative;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+#scanLog.active{color:var(--cy);}
+#btnScan{background:rgba(0,212,255,0.1);border:1px solid var(--cy);color:var(--cy);font-family:var(--fOrb);font-size:13px;font-weight:900;letter-spacing:3px;padding:0 22px;cursor:pointer;min-height:50px;border-top:none;white-space:nowrap;}
+#btnScan:disabled{opacity:0.35;cursor:not-allowed;}
+#scanNote{font-family:var(--fMono);font-size:8px;color:var(--txD);text-align:right;padding:3px 2px;}
+
+/* SIGNAL CARDS */
+#sigGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+.sigCard{background:var(--pan);border:1px solid var(--brd);overflow:hidden;}
+.cHdr{padding:10px 12px 8px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--brd);}
+.pairName{font-family:var(--fOrb);font-size:13px;font-weight:700;color:var(--tx);}
+.pairSess{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:3px;}
+.dirBdg{font-family:var(--fOrb);font-weight:900;padding:5px 10px;letter-spacing:2px;font-size:11px;}
+.bdgBuy{background:rgba(0,255,136,0.12);border:1px solid var(--gnD);color:var(--gn);}
+.bdgSell{background:rgba(255,51,85,0.12);border:1px solid var(--rdD);color:var(--rd);}
+.bdgNo{background:rgba(255,119,0,0.1);border:1px solid var(--or);color:var(--or);}
+.bdgWait{background:rgba(74,96,112,0.15);border:1px solid var(--txD);color:var(--txD);}
+.layWrap{padding:7px 12px 8px;}
+.layRow{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(26,35,50,0.5);}
+.layRow:last-child{border-bottom:none;}
+.layL{font-family:var(--fMono);font-size:9px;color:var(--txM);line-height:1.5;}
+.laySub{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:2px;}
+.lBdg{font-family:var(--fMono);font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:1px;flex-shrink:0;margin-left:6px;}
+.lPass{background:rgba(0,255,136,0.1);color:var(--gn);border:1px solid var(--gnD);}
+.lFail{background:rgba(255,51,85,0.08);color:var(--rd);border:1px solid var(--rdD);}
+.lWait{background:rgba(74,96,112,0.1);color:var(--txD);border:1px solid var(--brd);}
+.sigOut{padding:10px 12px;border-top:1px solid var(--brd);text-align:center;}
+.soTxt{font-family:var(--fOrb);font-size:15px;font-weight:900;letter-spacing:3px;}
+.soRsn{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:3px;}
+.sigOut.sBuy .soTxt{color:var(--gn);}
+.sigOut.sSell .soTxt{color:var(--rd);}
+.sigOut.sNo .soTxt{color:var(--or);}
+.sigOut.sWait .soTxt{color:var(--txD);}
+.sigTs{font-family:var(--fMono);font-size:8px;color:var(--txD);padding:4px 12px;border-top:1px solid var(--brd);display:flex;justify-content:space-between;}
+.pendCard{background:var(--pan);border:1px solid var(--brd);padding:22px 10px;text-align:center;}
+.pendTxt{font-family:var(--fMono);font-size:9px;color:var(--txD);letter-spacing:1px;line-height:1.8;}
+
+/* ANALYSIS LOG */
+#logSec{background:var(--pan);border:1px solid var(--brd);margin-bottom:6px;}
+.secHdr{padding:9px 14px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;}
+.secHdrTxt{font-family:var(--fMono);font-size:10px;font-weight:700;letter-spacing:2px;color:var(--txD);}
+.secHdrBtn{font-family:var(--fMono);font-size:9px;color:var(--txD);cursor:pointer;background:none;border:none;padding:0;}
+.secHdrBtn:hover{color:var(--cy);}
+#logBody{padding:8px 12px;max-height:130px;overflow-y:auto;}
+.logLine{font-family:var(--fMono);font-size:10px;line-height:1.9;padding:2px 0;border-bottom:1px solid rgba(26,35,50,0.4);display:flex;gap:8px;}
+.lPfx{color:var(--cy);flex-shrink:0;}
+.lTxt{color:var(--txD);}
+.lTxt.hi{color:var(--gn);}.lTxt.warn{color:var(--gd);}.lTxt.err{color:var(--rd);}
+
+/* JOURNAL */
+#jrnSec{background:var(--pan);border:1px solid var(--brd);margin-bottom:6px;}
+#jrnTop{padding:12px 14px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;}
+#jrnTitle{font-family:var(--fOrb);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--tx);}
+#jrnMeta{font-family:var(--fMono);font-size:9px;color:var(--txD);margin-top:3px;}
+#btnAddJrn{background:none;border:1px solid var(--brdB);color:var(--txD);font-family:var(--fMono);font-size:10px;font-weight:700;padding:6px 12px;cursor:pointer;}
+#btnAddJrn.active{background:rgba(255,204,0,0.08);border-color:var(--gd);color:var(--gd);}
+#jrnForm{padding:12px 14px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--brd);display:none;}
+#jStamp{font-family:var(--fMono);font-size:9px;color:var(--txD);margin-bottom:10px;}
+.fG2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.fG3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.fLbl{font-family:var(--fMono);font-size:9px;font-weight:700;color:var(--txD);letter-spacing:1px;margin-bottom:4px;}
+.fInp{background:#050709;border:1px solid var(--brdB);color:var(--tx);font-family:var(--fMono);font-size:11px;padding:8px;outline:none;width:100%;}
+.fInp:focus{border-color:var(--cy);}
+.fSel{background:#050709;border:1px solid var(--brdB);color:var(--tx);font-family:var(--fMono);font-size:11px;padding:8px;outline:none;width:100%;-webkit-appearance:none;}
+.fSel:focus{border-color:var(--cy);}
+.btnSaveE{background:rgba(0,212,255,0.08);border:1px solid var(--cy);color:var(--cy);font-family:var(--fOrb);font-size:10px;font-weight:700;letter-spacing:2px;padding:12px;cursor:pointer;width:100%;}
+.btnSaveE:active{background:rgba(0,212,255,0.2);}
+#jrnList{max-height:320px;overflow-y:auto;}
+.jRow{padding:10px 14px;border-bottom:1px solid var(--brd);cursor:pointer;}
+.jRow.jWin{border-left:3px solid var(--gn);}
+.jRow.jLoss{border-left:3px solid var(--rd);}
+.jRow.jOpen{border-left:3px solid var(--txD);}
+.jRowTop{display:flex;justify-content:space-between;align-items:flex-start;}
+.jPair{font-family:var(--fOrb);font-size:12px;font-weight:700;color:var(--tx);}
+.jDir{font-family:var(--fMono);font-size:10px;letter-spacing:1px;margin-left:6px;}
+.jDirB{color:var(--gn);}.jDirS{color:var(--rd);}
+.jMeta{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:2px;}
+.jNote{font-family:var(--fMono);font-size:8px;color:var(--txD);margin-top:2px;font-style:italic;}
+.jRes{font-family:var(--fOrb);font-size:10px;letter-spacing:1px;}
+.jResW{color:var(--gn);}.jResL{color:var(--rd);}.jResO{color:var(--txD);}
+.jExp{font-family:var(--fMono);font-size:8px;color:var(--txD);text-align:right;margin-top:4px;}
+.editPanel{background:rgba(0,0,0,0.25);border-top:1px solid var(--brd);padding:10px 14px;display:none;}
+.editG2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px;}
+.editG3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:7px;}
+.eBtns{display:flex;gap:6px;}
+.btnESave{flex:1;background:rgba(0,212,255,0.08);border:1px solid var(--cy);color:var(--cy);font-family:var(--fOrb);font-size:9px;font-weight:700;letter-spacing:1px;padding:10px;cursor:pointer;}
+.btnEDel{background:rgba(255,51,85,0.08);border:1px solid var(--rdD);color:var(--rd);font-family:var(--fOrb);font-size:9px;font-weight:700;padding:10px 12px;cursor:pointer;}
+.btnECls{background:rgba(74,96,112,0.1);border:1px solid var(--txD);color:var(--txD);font-family:var(--fMono);font-size:9px;padding:10px 12px;cursor:pointer;}
+.jEmpty{padding:18px 14px;text-align:center;font-family:var(--fMono);font-size:10px;color:var(--txD);}
+
+/* DISCLAIMER */
+#disc{padding:10px 14px;border:1px solid var(--brd);background:rgba(255,51,85,0.03);border-left:3px solid var(--rdD);margin-bottom:20px;font-family:var(--fMono);font-size:9px;color:var(--txM);line-height:1.7;}
+</style>
+</head>
+<body>
+
+<div id="topBar">
+  <div>
+    <div id="logo">NOVICE STRATEGY V.01</div>
+    <div id="logoSub">TRADEBASIX · PROFITWIZE · LEARN TO EARN</div>
+  </div>
+  <div>
+    <div id="clock">--:--:--</div>
+    <div id="dateDisp">--/--/----</div>
+    <div id="tzDisp">SAST</div>
+  </div>
+</div>
+
+<div id="credBar">
+  <span id="credLeft">DAILY API CREDITS</span>
+  <span>
+    <span id="credUsedEl" class="credUsed">0</span>
+    <span class="credMid"> used · </span>
+    <span id="credRemEl" class="credRem credGood">800</span>
+    <span class="credMid"> remaining · resets midnight SAST</span>
+  </span>
+</div>
+
+<div id="proxyStrip">
+  <div class="proxyRow">
+    <div class="pxItem">
+      <div class="pxLbl">USD/JPY</div>
+      <div class="pxTag">DXY PROXY</div>
+      <div class="pxVal" id="pxV-USDJPY">--.-</div>
+      <div class="pxDir" id="pxD-USDJPY">—</div>
+    </div>
+    <div class="mDiv"></div>
+    <div class="pxItem">
+      <div class="pxLbl">USD/CHF</div>
+      <div class="pxTag">DXY PROXY</div>
+      <div class="pxVal" id="pxV-USDCHF">--.-</div>
+      <div class="pxDir" id="pxD-USDCHF">—</div>
+    </div>
+    <div class="mDiv"></div>
+    <div class="pxItem">
+      <div class="pxLbl">XAU/USD</div>
+      <div class="pxTag">DISPLAY ONLY</div>
+      <div class="pxVal" id="pxV-XAU" style="color:var(--gd)">----.-</div>
+      <div class="pxDir" id="pxD-XAU">—</div>
+    </div>
+  </div>
+  <div class="proxyBtm">
+    <button class="proxyRefBtn" onclick="refreshProxy()">↻ REFRESH PROXY</button>
+    <span id="proxyTs">Not yet refreshed</span>
+  </div>
+</div>
+
+<div id="biasBar">
+  <div id="biasLbl">USD BIAS · VISUAL REFERENCE ONLY · DOES NOT BLOCK SIGNALS</div>
+  <div class="biasTop">
+    <div>
+      <div id="biasVal">AWAITING DATA</div>
+      <div id="biasSub">Both USD/JPY and USD/CHF must agree on direction</div>
+    </div>
+    <div class="biasInds">
+      <div class="biasInd">
+        <div class="biIndLbl">USD/JPY</div>
+        <div class="biIndVal" id="biJpy">—</div>
+      </div>
+      <div class="mDiv" style="height:28px;"></div>
+      <div class="biasInd">
+        <div class="biIndLbl">USD/CHF</div>
+        <div class="biIndVal" id="biChf">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sessionBlock">
+  <div id="sessHdr">SELECT SESSION</div>
+  <div id="tabGrid">
+    <div class="tab" id="tab-0" onclick="setSession(0)">
+      <div class="tabName">ASIA</div>
+      <div class="tabPairs">AUD/USD</div>
+      <div class="tabPairs">00:30–08:59</div>
+    </div>
+    <div class="tab" id="tab-1" onclick="setSession(1)">
+      <div class="tabName">LONDON</div>
+      <div class="tabPairs">EUR/USD</div>
+      <div class="tabPairs">09:00–17:00</div>
+    </div>
+    <div class="tab" id="tab-2" onclick="setSession(2)">
+      <div class="tabName">NEW YORK</div>
+      <div class="tabPairs">EUR/USD</div>
+      <div class="tabPairs">15:30–23:30</div>
+    </div>
+  </div>
+</div>
+
+<div id="pairBlock">
+  <div id="pairLbl">SELECT PAIRS TO SCAN · MAX 2 · 4 CREDITS EACH</div>
+  <div id="pairGrid">
+    <div class="pChk" id="pc-AUDUSD" onclick="togglePair('AUDUSD')">
+      <div class="pBox"><span class="pTick">✓</span></div>
+      <div><div class="pName">AUD/USD</div><div class="pSess">ASIA SESSION</div></div>
+    </div>
+    <div class="pChk" id="pc-EURUSD" onclick="togglePair('EURUSD')">
+      <div class="pBox"><span class="pTick">✓</span></div>
+      <div><div class="pName">EUR/USD</div><div class="pSess">LONDON / NY</div></div>
+    </div>
+  </div>
+  <div id="pairNote">Select 1 or 2 pairs to scan</div>
+</div>
+
+<div id="apiSec">
+  <div class="apiHdr">
+    12DATA API KEY
+    <span id="savedBadge">SAVED</span>
+  </div>
+  <div class="apiRow">
+    <input id="apiInp" type="text" placeholder="Enter Twelve Data API key..." autocomplete="off" style="color:var(--cy);"/>
+    <button id="btnSave" onclick="saveKey()">SAVE</button>
+  </div>
+  <div class="apiNote">Free plan · 4 credits per pair · 8 credits max per scan · 800 daily · ~100 scans max</div>
+</div>
+
+<div id="scanOuter">
+  <div id="scanRow">
+    <div id="scanWrap">
+      <div id="scanFill"></div>
+      <div id="scanLog">Save API key · Select pairs · Press SCAN</div>
+    </div>
+    <button id="btnScan" onclick="runScan()" disabled>SCAN</button>
+  </div>
+  <div id="scanNote">—</div>
+</div>
+
+<div id="sigGrid">
+  <div class="pendCard"><div class="pendTxt">SELECT PAIRS<br/>AND SCAN</div></div>
+  <div class="pendCard"><div class="pendTxt">SELECT PAIRS<br/>AND SCAN</div></div>
+</div>
+
+<div id="logSec">
+  <div class="secHdr">
+    <span class="secHdrTxt">ANALYSIS LOG</span>
+    <button class="secHdrBtn" onclick="clearLog()">CLEAR</button>
+  </div>
+  <div id="logBody"></div>
+</div>
+
+<div id="jrnSec">
+  <div id="jrnTop">
+    <div>
+      <div id="jrnTitle">TRADE JOURNAL</div>
+      <div id="jrnMeta">0 entries · 0 closed · 0 open</div>
+    </div>
+    <button id="btnAddJrn" onclick="toggleJrnForm()">+ LOG TRADE</button>
+  </div>
+  <div id="jrnForm">
+    <div id="jStamp">—</div>
+    <div class="fG2">
+      <div><div class="fLbl">PAIR</div>
+        <select class="fSel" id="jf-pair">
+          <option>AUD/USD</option><option>EUR/USD</option><option>XAU/USD</option>
+        </select></div>
+      <div><div class="fLbl">DIRECTION</div>
+        <select class="fSel" id="jf-dir">
+          <option>BUY</option><option>SELL</option>
+        </select></div>
+    </div>
+    <div class="fG2">
+      <div><div class="fLbl">SESSION</div>
+        <select class="fSel" id="jf-sess">
+          <option>ASIA</option><option>LONDON</option><option>NEW YORK</option>
+        </select></div>
+      <div><div class="fLbl">RESULT</div>
+        <select class="fSel" id="jf-result">
+          <option>OPEN</option><option>WIN</option><option>LOSS</option>
+        </select></div>
+    </div>
+    <div class="fG3">
+      <div><div class="fLbl">ENTRY</div><input class="fInp" type="number" id="jf-entry" placeholder="1.09000" step="0.00001"/></div>
+      <div><div class="fLbl">STOP LOSS</div><input class="fInp" type="number" id="jf-sl" placeholder="1.08800" step="0.00001"/></div>
+      <div><div class="fLbl">TAKE PROFIT</div><input class="fInp" type="number" id="jf-tp" placeholder="1.09400" step="0.00001"/></div>
+    </div>
+    <div class="fG2" style="margin-bottom:8px;">
+      <div><div class="fLbl">USD BIAS AT ENTRY</div>
+        <select class="fSel" id="jf-bias">
+          <option>USD STRONG</option><option>USD WEAK</option><option>USD UNCLEAR</option>
+        </select></div>
+      <div><div class="fLbl">NOTES (optional)</div>
+        <input class="fInp" type="text" id="jf-note" placeholder="e.g. Clean pullback..."/></div>
+    </div>
+    <button class="btnSaveE" onclick="saveEntry()">SAVE TRADE ENTRY</button>
+  </div>
+  <div id="jrnList"><div class="jEmpty">No trades logged yet · Press + LOG TRADE to add</div></div>
+</div>
+
+<div id="disc">FINAL DECISION IS YOURS. NOVICE STRATEGY V.01 uses live Twelve Data OHLCV feeds. All signals are mathematically calculated from closed candles — not AI-generated or guessed. Signal output is BUY / SELL / NO TRADE based on your confirmed 3-layer strategy. Not financial advice. All trades carry risk. Always apply your own judgment and risk management.</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let apiKey = '';
+let scanning = false;
+let selectedPairs = [];
+let journal = [];
+let credUsed = 0;
+let credDate = '';
+let xauPrev = null;
+
+const ss  = (k,v) => { try { localStorage.setItem(k,v); } catch(e) {} };
+const sg  = (k)   => { try { return localStorage.getItem(k); } catch(e) { return null; } };
+const slp = ms    => new Promise(r => setTimeout(r, ms));
+const p2  = n     => String(n).padStart(2,'0');
+
+// ══════════════════════════════════════════════
+// SAST — pure UTC+2, no timezone offset tricks
+// ══════════════════════════════════════════════
+function getSAST() {
+  const d = new Date(Date.now() + 2 * 3600000);
+  return {
+    h:  d.getUTCHours(),
+    m:  d.getUTCMinutes(),
+    s:  d.getUTCSeconds(),
+    hh: p2(d.getUTCHours()),
+    mm: p2(d.getUTCMinutes()),
+    ss: p2(d.getUTCSeconds()),
+    dateStr:  `${p2(d.getUTCDate())}/${p2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`,
+    dateKey:  `${d.getUTCFullYear()}-${p2(d.getUTCMonth()+1)}-${p2(d.getUTCDate())}`,
+    stampFull:`${p2(d.getUTCDate())}/${p2(d.getUTCMonth()+1)}/${d.getUTCFullYear()} ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())} SAST`
+  };
+}
+
+// ══════════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════════
+function startClock() {
+  const tick = () => {
+    const t = getSAST();
+    document.getElementById('clock').textContent   = `${t.hh}:${t.mm}:${t.ss}`;
+    document.getElementById('dateDisp').textContent = t.dateStr;
+    // Credit reset at midnight SAST
+    if (t.dateKey !== credDate) {
+      credUsed = 0; credDate = t.dateKey;
+      ss('nsv1_cused','0'); ss('nsv1_cdate', t.dateKey);
+      updateCredBar();
+    }
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ══════════════════════════════════════════════
+// CREDITS
+// ══════════════════════════════════════════════
+function updateCredBar() {
+  const rem = 800 - credUsed;
+  document.getElementById('credUsedEl').textContent = credUsed;
+  const re = document.getElementById('credRemEl');
+  re.textContent = rem;
+  re.className = 'credRem ' + (rem > 400 ? 'credGood' : rem > 100 ? 'credWarn' : 'credLow');
+}
+
+function useCredits(n) {
+  credUsed = Math.min(800, credUsed + n);
+  ss('nsv1_cused', credUsed);
+  updateCredBar();
+}
+
+// ══════════════════════════════════════════════
+// CORS PROXY — same 3-proxy fallback as CGN
+// ══════════════════════════════════════════════
+async function proxyFetch(url) {
+  const proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(url),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
+  ];
+  let lastErr;
+  for (let i = 0; i < proxies.length; i++) {
+    try {
+      const r = await fetch(proxies[i]);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const text = await r.text();
+      try {
+        const parsed = JSON.parse(text);
+        // allorigins wraps in {contents:'...'}
+        if (parsed && parsed.contents !== undefined) {
+          return { text: parsed.contents, json: () => JSON.parse(parsed.contents) };
+        }
+        return { text, json: () => parsed };
+      } catch(e) {
+        return { text, json: () => JSON.parse(text) };
+      }
+    } catch(e) {
+      lastErr = e;
+    }
+  }
+  throw new Error('All proxies failed: ' + (lastErr ? lastErr.message : 'unknown'));
+}
+
+// ══════════════════════════════════════════════
+// 12DATA FETCH — via proxy for local file compat
+// ══════════════════════════════════════════════
+async function fetch12data(sym, interval, outputsize) {
+  const label = sym.slice(0,3) + '/' + sym.slice(3);
+  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(label)}&interval=${interval}&outputsize=${outputsize}&apikey=${apiKey}&format=JSON`;
+  const res = await proxyFetch(url);
+  const d = res.json();
+  if (d.status === 'error') throw new Error(d.message || '12data error');
+  if (!d.values || !d.values.length) throw new Error('No data: ' + sym + ' ' + interval);
+  // slice(1) = drop index 0 (current open candle) — closed candles only
+  return d.values.slice(1);
+}
+
+function sma(candles, n) {
+  if (!candles || candles.length < n) return null;
+  let s = 0;
+  for (let i = 0; i < n; i++) s += parseFloat(candles[i].close);
+  return s / n;
+}
+
+// ══════════════════════════════════════════════
+// API KEY
+// ══════════════════════════════════════════════
+function saveKey() {
+  const inp = document.getElementById('apiInp');
+  // Read value before any type change
+  const v = (inp.value || '').trim();
+  if (!v || v.length < 8) {
+    addLog('Enter a valid API key — minimum 8 characters','err');
+    return;
+  }
+  apiKey = v;
+  ss('nsv1_key', v);
+  markKeySaved();
+  addLog('API key saved — ready to scan','hi');
+  updateScanBtn();
+}
+
+function markKeySaved() {
+  document.getElementById('savedBadge').style.display = 'inline';
+  const b = document.getElementById('btnSave');
+  b.textContent = 'SAVED';
+  b.classList.add('saved');
+  const inp = document.getElementById('apiInp');
+  inp.type = 'text';
+  inp.value = '';
+  inp.placeholder = '● ● ● KEY SAVED ● ● ●';
+  inp.disabled = false;
+}
+
+// ══════════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════════
+function setSession(i) {
+  document.querySelectorAll('.tab').forEach((t, idx) => {
+    t.classList.toggle('active', idx === i);
+    if (idx === i) { t.classList.add('flash'); setTimeout(() => t.classList.remove('flash'), 400); }
+  });
+  addLog('Session: ' + ['ASIA','LONDON','NEW YORK'][i]);
+}
+
+// ══════════════════════════════════════════════
+// PAIR SELECTION
+// ══════════════════════════════════════════════
+function togglePair(sym) {
+  const el = document.getElementById('pc-' + sym);
+  if (el.classList.contains('on')) {
+    el.classList.remove('on');
+    selectedPairs = selectedPairs.filter(p => p !== sym);
+  } else {
+    if (selectedPairs.length >= 2) {
+      const note = document.getElementById('pairNote');
+      note.textContent = 'MAX 2 PAIRS · Deselect one first';
+      note.style.color = 'var(--rd)';
+      setTimeout(() => { note.style.color = ''; updateScanBtn(); }, 2000);
+      return;
+    }
+    el.classList.add('on');
+    selectedPairs.push(sym);
+  }
+  updateScanBtn();
+}
+
+function updateScanBtn() {
+  const note     = document.getElementById('pairNote');
+  const scanNote = document.getElementById('scanNote');
+  note.style.color = '';
+  if (selectedPairs.length === 0) {
+    note.textContent = 'Select 1 or 2 pairs to scan';
+    scanNote.textContent = '—';
+  } else {
+    const c = selectedPairs.length * 4;
+    note.textContent = selectedPairs.length + ' pair(s) selected · ' + c + ' credits per scan';
+    scanNote.textContent = 'This scan will use ' + c + ' credits · ' + (800 - credUsed - c) + ' remaining after';
+  }
+  document.getElementById('btnScan').disabled = (!apiKey || selectedPairs.length === 0 || scanning);
+}
+
+// ══════════════════════════════════════════════
+// PROXY REFRESH — manual, 12data for JPY/CHF,
+//                goldprice.org for XAU via proxy
+// ══════════════════════════════════════════════
+async function refreshProxy() {
+  if (!apiKey) { addLog('Save API key first','err'); return; }
+  addLog('Refreshing proxy data...');
+  document.querySelector('.proxyRefBtn').textContent = '↻ REFRESHING...';
+
+  let jpyDir = null, chfDir = null;
+
+  for (const sym of ['USDJPY','USDCHF']) {
+    try {
+      const candles = await fetch12data(sym, '15min', 3);
+      // candles[0] = most recent closed, candles[1] = prior closed
+      const last  = parseFloat(candles[0].close);
+      const prior = parseFloat(candles[1].close);
+      const dir   = last > prior ? 'UP' : last < prior ? 'DOWN' : 'FLAT';
+      setProxyDisplay(sym, last.toFixed(5), dir);
+      if (sym === 'USDJPY') jpyDir = dir;
+      if (sym === 'USDCHF') chfDir = dir;
+    } catch(e) {
+      document.getElementById('pxV-'+sym).textContent = 'ERR';
+      document.getElementById('pxD-'+sym).textContent = e.message.slice(0,20);
+      addLog(sym + ' error: ' + e.message, 'err');
+    }
+    await slp(500);
+  }
+
+  // XAU via goldprice.org — CORS proxy
+  try {
+    const res = await proxyFetch('https://data-asg.goldprice.org/dbXRates/USD');
+    const d = res.json();
+    const price = d.items && d.items[0] ? parseFloat(d.items[0].xauPrice) : null;
+    if (!price || isNaN(price)) throw new Error('No XAU price in response');
+    const dir = xauPrev !== null ? (price > xauPrev ? 'UP' : price < xauPrev ? 'DOWN' : 'FLAT') : 'FLAT';
+    xauPrev = price;
+    document.getElementById('pxV-XAU').textContent = price.toFixed(2);
+    const dEl = document.getElementById('pxD-XAU');
+    dEl.textContent = dir==='UP'?'▲ UP':dir==='DOWN'?'▼ DOWN':'— FLAT';
+    dEl.className = 'pxDir ' + (dir==='UP'?'pxUp':dir==='DOWN'?'pxDn':'pxFl');
+  } catch(e) {
+    document.getElementById('pxV-XAU').textContent = '----.-';
+    addLog('XAU: ' + e.message, 'warn');
+  }
+
+  updateBias(jpyDir, chfDir);
+  const t = getSAST();
+  document.getElementById('proxyTs').textContent = 'Updated ' + t.hh + ':' + t.mm + ' SAST';
+  document.querySelector('.proxyRefBtn').textContent = '↻ REFRESH PROXY';
+  addLog('Proxy refreshed','hi');
+}
+
+function setProxyDisplay(sym, price, dir) {
+  const vEl = document.getElementById('pxV-' + sym);
+  const dEl = document.getElementById('pxD-' + sym);
+  vEl.textContent = price;
+  vEl.className = 'pxVal ' + (dir==='UP'?'pxUp':dir==='DOWN'?'pxDn':'pxFl');
+  dEl.textContent = dir==='UP'?'▲ UP':dir==='DOWN'?'▼ DOWN':'— FLAT';
+  dEl.className = 'pxDir ' + (dir==='UP'?'pxUp':dir==='DOWN'?'pxDn':'pxFl');
+}
+
+function updateBias(jpy, chf) {
+  const bv = document.getElementById('biasVal');
+  const bs = document.getElementById('biasSub');
+  const bj = document.getElementById('biJpy');
+  const bc = document.getElementById('biChf');
+  const arrow = d => d==='UP'?'▲ UP':d==='DOWN'?'▼ DOWN':'— FLAT';
+  const col   = d => d==='UP'?'var(--gn)':d==='DOWN'?'var(--rd)':'var(--txD)';
+  bj.textContent = jpy ? arrow(jpy) : '—'; bj.style.color = jpy ? col(jpy) : 'var(--txD)';
+  bc.textContent = chf ? arrow(chf) : '—'; bc.style.color = chf ? col(chf) : 'var(--txD)';
+  if (!jpy || !chf) { bv.textContent='AWAITING DATA'; bv.style.color='var(--txD)'; return; }
+  if (jpy==='UP' && chf==='UP') {
+    bv.textContent='USD STRONG'; bv.style.color='var(--cy)';
+    bs.textContent='Both proxies UP · USD bullish · Adds confidence to SELL setups';
+  } else if (jpy==='DOWN' && chf==='DOWN') {
+    bv.textContent='USD WEAK'; bv.style.color='var(--gn)';
+    bs.textContent='Both proxies DOWN · USD bearish · Adds confidence to BUY setups';
+  } else {
+    bv.textContent='USD UNCLEAR'; bv.style.color='var(--txD)';
+    bs.textContent='Proxies conflicting · Direction mixed · Trade chart signals only';
+  }
+}
+
+// ══════════════════════════════════════════════
+// SCAN
+// ══════════════════════════════════════════════
+async function runScan() {
+  if (!apiKey)                 { addLog('No API key saved','err'); return; }
+  if (selectedPairs.length===0){ addLog('Select at least 1 pair','err'); return; }
+  if (scanning)                { return; }
+  const credits = selectedPairs.length * 4;
+  if (credUsed + credits > 800){ addLog('Insufficient credits · ' + (800-credUsed) + ' remaining','err'); return; }
+
+  scanning = true;
+  document.getElementById('btnScan').disabled = true;
+  document.getElementById('scanLog').className = 'active';
+  setScanLog('Starting scan...');
+  setScanFill(5);
+  buildPendingCards();
+
+  const results = {};
+  const fillStep = 85 / selectedPairs.length;
+  let fill = 5;
+
+  for (let i = 0; i < selectedPairs.length; i++) {
+    const sym = selectedPairs[i];
+    setScanLog('Analysing ' + sym.slice(0,3) + '/' + sym.slice(3) + '...');
+    try {
+      results[sym] = await analysePair(sym);
+      useCredits(4);
+    } catch(e) {
+      results[sym] = { error: e.message };
+      addLog(sym + ' failed: ' + e.message, 'err');
+    }
+    fill += fillStep;
+    setScanFill(fill);
+    if (i < selectedPairs.length - 1) await slp(800);
+  }
+
+  setScanFill(100);
+  setTimeout(() => setScanFill(0), 800);
+  const t = getSAST();
+  setScanLog('Scan complete · ' + t.hh + ':' + t.mm + ' SAST');
+  document.getElementById('scanLog').className = '';
+  buildSignalCards(results);
+  scanning = false;
+  document.getElementById('btnScan').disabled = false;
+  addLog('Scan complete · ' + t.hh + ':' + t.mm + ' SAST', 'hi');
+}
+
+// ══════════════════════════════════════════════
+// ANALYSE PAIR — 3 layers, closed candles only
+// ══════════════════════════════════════════════
+async function analysePair(sym) {
+  // ── LAYER 1: 15M TREND ──
+  addLog(sym.slice(0,3) + '/' + sym.slice(3) + ' · Fetching 15M...');
+  const c15 = await fetch12data(sym, '15min', 212); // returns closed candles only
+  if (c15.length < 51) throw new Error('Need 51+ 15M candles · Got ' + c15.length);
+
+  const ma50_15  = sma(c15, 50);
+  const ma200_15 = sma(c15, Math.min(200, c15.length));
+  const p15      = parseFloat(c15[0].close);
+  const dec      = 5;
+
+  let trend = 'UNCLEAR';
+  if      (p15 > ma50_15 && (!ma200_15 || p15 > ma200_15)) trend = 'BUY';
+  else if (p15 < ma50_15 && (!ma200_15 || p15 < ma200_15)) trend = 'SELL';
+
+  const ma200str = ma200_15 ? ma200_15.toFixed(dec) : 'need ' + (200 - c15.length) + ' more';
+  addLog(sym.slice(0,3) + '/' + sym.slice(3) + ' · 15M: ' + trend + ' · P:' + p15.toFixed(dec) + ' MA50:' + ma50_15.toFixed(dec));
+
+  if (trend === 'UNCLEAR') return {
+    trend, pullback: false, confirmed: false,
+    signal: 'NO TRADE', reason: 'Trend unclear — price between MAs',
+    p15: p15.toFixed(dec), ma50_15: ma50_15.toFixed(dec), ma200_15: ma200str
+  };
+
+  // ── LAYER 2: 5M PULLBACK ──
+  await slp(400);
+  addLog(sym.slice(0,3) + '/' + sym.slice(3) + ' · Fetching 5M...');
+  const c5     = await fetch12data(sym, '5min', 55);
+  const ma50_5 = sma(c5, Math.min(50, c5.length));
+  if (!ma50_5) throw new Error('Insufficient 5M data');
+
+  const zone  = ma50_5 * 0.0015;
+  const zHi   = ma50_5 + zone;
+  const zLo   = ma50_5 - zone;
+  const lc    = c5[0];
+  const lcH   = parseFloat(lc.high);
+  const lcL   = parseFloat(lc.low);
+  const lcC   = parseFloat(lc.close);
+  const lcO   = parseFloat(lc.open);
+
+  const pullback = trend === 'BUY' ? lcL <= zHi : lcH >= zLo;
+  addLog(sym.slice(0,3) + '/' + sym.slice(3) + ' · 5M pullback: ' + (pullback?'YES':'NO'));
+
+  if (!pullback) return {
+    trend, pullback: false, confirmed: false,
+    signal: 'NO TRADE', reason: 'No pullback to 50 MA zone yet',
+    p15: p15.toFixed(dec), ma50_15: ma50_15.toFixed(dec), ma200_15: ma200str,
+    ma50_5: ma50_5.toFixed(dec), zHi: zHi.toFixed(dec), zLo: zLo.toFixed(dec),
+    candle: lc.datetime
+  };
+
+  // ── LAYER 3: CONFIRMATION CANDLE ──
+  const confirmed = trend === 'BUY' ? lcC > lcO : lcC < lcO;
+  addLog(sym.slice(0,3) + '/' + sym.slice(3) + ' · Confirmation: ' + (confirmed?'YES':'NO'));
+
+  return {
+    trend, pullback: true, confirmed,
+    signal: confirmed ? trend : 'NO TRADE',
+    reason: confirmed ? 'All 3 layers confirmed' : 'Pullback confirmed — awaiting confirmation candle',
+    p15: p15.toFixed(dec), ma50_15: ma50_15.toFixed(dec), ma200_15: ma200str,
+    ma50_5: ma50_5.toFixed(dec), zHi: zHi.toFixed(dec), zLo: zLo.toFixed(dec),
+    candle: lc.datetime
+  };
+}
+
+// ══════════════════════════════════════════════
+// RENDER CARDS
+// ══════════════════════════════════════════════
+function buildPendingCards() {
+  const g = document.getElementById('sigGrid');
+  g.innerHTML = '';
+  const slots = selectedPairs.length === 1 ? [selectedPairs[0], null] : [...selectedPairs];
+  slots.forEach(sym => {
+    const d = document.createElement('div');
+    if (!sym) { d.className='pendCard'; d.innerHTML='<div class="pendTxt">—</div>'; g.appendChild(d); return; }
+    d.className = 'pendCard';
+    d.innerHTML = '<div style="font-family:var(--fOrb);font-size:12px;color:var(--cy);margin-bottom:8px">' + sym.slice(0,3) + '/' + sym.slice(3) + '</div><div class="pendTxt">SCANNING...</div>';
+    g.appendChild(d);
+  });
+}
+
+function buildSignalCards(results) {
+  const g = document.getElementById('sigGrid');
+  g.innerHTML = '';
+  const keys  = Object.keys(results);
+  const slots = keys.length === 1 ? [keys[0], null] : keys;
+
+  slots.forEach(sym => {
+    const d = document.createElement('div');
+    if (!sym) { d.className='pendCard'; d.innerHTML='<div class="pendTxt">—</div>'; g.appendChild(d); return; }
+    const r = results[sym];
+    d.className = 'sigCard';
+
+    if (r.error) {
+      d.innerHTML = '<div class="cHdr"><div><div class="pairName">' + sym.slice(0,3) + '/' + sym.slice(3) + '</div></div><div class="dirBdg bdgWait">ERR</div></div><div class="sigOut sWait"><div class="soTxt">ERROR</div><div class="soRsn">' + r.error + '</div></div>';
+      g.appendChild(d); return;
+    }
+
+    const sigCls = r.signal==='BUY'?'sBuy':r.signal==='SELL'?'sSell':'sNo';
+    const dirCls = r.signal==='BUY'?'bdgBuy':r.signal==='SELL'?'bdgSell':'bdgNo';
+    const l1c = r.trend!=='UNCLEAR' ? 'lPass' : 'lFail';
+    const l2c = r.pullback===true ? 'lPass' : (r.pullback===false && r.trend!=='UNCLEAR' ? 'lFail' : 'lWait');
+    const l3c = r.confirmed===true ? 'lPass' : (r.confirmed===false && r.pullback ? 'lFail' : 'lWait');
+    const l2txt = r.pullback===true?'YES':(r.pullback===false&&r.trend!=='UNCLEAR'?'NO':'—');
+    const l3txt = r.confirmed===true?'YES':(r.confirmed===false&&r.pullback?'NO':'—');
+
+    d.innerHTML =
+      '<div class="cHdr">' +
+        '<div><div class="pairName">' + sym.slice(0,3) + '/' + sym.slice(3) + '</div>' +
+        '<div class="pairSess">' + (sym==='AUDUSD'?'ASIA':'LONDON / NY') + '</div></div>' +
+        '<div class="dirBdg ' + dirCls + '">' + r.signal + '</div>' +
+      '</div>' +
+      '<div class="layWrap">' +
+        '<div class="layRow"><div><div class="layL">15M TREND · MA50 &amp; MA200</div>' +
+        '<div class="laySub">P:' + r.p15 + ' MA50:' + r.ma50_15 + ' MA200:' + r.ma200_15 + '</div></div>' +
+        '<div class="lBdg ' + l1c + '">' + r.trend + '</div></div>' +
+
+        '<div class="layRow"><div><div class="layL">5M PULLBACK · ±0.15% of MA50</div>' +
+        '<div class="laySub">' + (r.ma50_5 ? 'Zone:' + r.zLo + '–' + r.zHi : '—') + '</div></div>' +
+        '<div class="lBdg ' + l2c + '">' + l2txt + '</div></div>' +
+
+        '<div class="layRow"><div><div class="layL">5M CONFIRMATION CANDLE</div>' +
+        '<div class="laySub">Closed candle in trend direction</div></div>' +
+        '<div class="lBdg ' + l3c + '">' + l3txt + '</div></div>' +
+      '</div>' +
+      '<div class="sigOut ' + sigCls + '"><div class="soTxt">' + r.signal + '</div>' +
+      '<div class="soRsn">' + r.reason + '</div></div>' +
+      (r.candle ? '<div class="sigTs"><span>CANDLE</span><span>' + r.candle + '</span></div>' : '');
+
+    g.appendChild(d);
+  });
+}
+
+// ══════════════════════════════════════════════
+// SCAN UI HELPERS
+// ══════════════════════════════════════════════
+function setScanLog(m) { document.getElementById('scanLog').textContent = m; }
+function setScanFill(p) { document.getElementById('scanFill').style.width = p + '%'; }
+
+// ══════════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════════
+function addLog(txt, cls) {
+  const b = document.getElementById('logBody');
+  const t = getSAST();
+  const line = document.createElement('div');
+  line.className = 'logLine';
+  line.innerHTML = '<span class="lPfx">»</span><span class="lTxt ' + (cls||'') + '">[' + t.hh + ':' + t.mm + '] ' + txt + '</span>';
+  b.insertBefore(line, b.firstChild);
+  while (b.children.length > 40) b.removeChild(b.lastChild);
+}
+
+function clearLog() {
+  document.getElementById('logBody').innerHTML = '';
+  addLog('Log cleared');
+}
+
+// ══════════════════════════════════════════════
+// JOURNAL
+// ══════════════════════════════════════════════
+function toggleJrnForm() {
+  const f = document.getElementById('jrnForm');
+  const b = document.getElementById('btnAddJrn');
+  const open = f.style.display === 'block';
+  f.style.display = open ? 'none' : 'block';
+  b.classList.toggle('active', !open);
+  if (!open) {
+    const t = getSAST();
+    document.getElementById('jStamp').textContent = 'TIMESTAMP: ' + t.stampFull;
+  }
+}
+
+function saveEntry() {
+  const t = getSAST();
+  const e = {
+    id:     Date.now(),
+    ts:     t.stampFull,
+    pair:   document.getElementById('jf-pair').value,
+    dir:    document.getElementById('jf-dir').value,
+    sess:   document.getElementById('jf-sess').value,
+    result: document.getElementById('jf-result').value,
+    entry:  document.getElementById('jf-entry').value || '—',
+    sl:     document.getElementById('jf-sl').value || '—',
+    tp:     document.getElementById('jf-tp').value || '—',
+    bias:   document.getElementById('jf-bias').value,
+    note:   document.getElementById('jf-note').value || ''
+  };
+  journal.unshift(e);
+  ss('nsv1_jrn', JSON.stringify(journal));
+  renderJrn();
+  toggleJrnForm();
+  ['jf-entry','jf-sl','jf-tp','jf-note'].forEach(id => document.getElementById(id).value = '');
+  addLog('Trade logged: ' + e.pair + ' ' + e.dir + ' · ' + e.result, 'hi');
+}
+
+function renderJrn() {
+  const wins   = journal.filter(j=>j.result==='WIN').length;
+  const losses = journal.filter(j=>j.result==='LOSS').length;
+  const open   = journal.filter(j=>j.result==='OPEN').length;
+  document.getElementById('jrnMeta').textContent = journal.length + ' entries · ' + (wins+losses) + ' closed · ' + open + ' open';
+  const list = document.getElementById('jrnList');
+  if (!journal.length) {
+    list.innerHTML = '<div class="jEmpty">No trades logged yet · Press + LOG TRADE to add</div>';
+    return;
+  }
+  list.innerHTML = journal.map(j =>
+    '<div class="jRow j' + j.result + '" id="jr-' + j.id + '">' +
+      '<div class="jRowTop" onclick="toggleEdit(' + j.id + ')">' +
+        '<div>' +
+          '<div class="jPair">' + j.pair + ' <span class="jDir ' + (j.dir==='BUY'?'jDirB':'jDirS') + '">' + j.dir + '</span></div>' +
+          '<div class="jMeta">' + j.ts + ' · ' + j.sess + '</div>' +
+          '<div class="jMeta">Entry: ' + j.entry + ' · SL: ' + j.sl + ' · TP: ' + j.tp + ' · Bias: ' + j.bias + '</div>' +
+          (j.note ? '<div class="jNote">"' + j.note + '"</div>' : '') +
+        '</div>' +
+        '<div>' +
+          '<div class="jRes ' + (j.result==='WIN'?'jResW':j.result==='LOSS'?'jResL':'jResO') + '">' + j.result + '</div>' +
+          '<div class="jExp" id="jexp-' + j.id + '">▼ EDIT</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="editPanel" id="ep-' + j.id + '">' +
+        '<div class="editG2">' +
+          '<div><div class="fLbl">RESULT</div><select class="fSel" id="er-' + j.id + '">' +
+            '<option' + (j.result==='OPEN'?' selected':'') + '>OPEN</option>' +
+            '<option' + (j.result==='WIN'?' selected':'') + '>WIN</option>' +
+            '<option' + (j.result==='LOSS'?' selected':'') + '>LOSS</option>' +
+          '</select></div>' +
+          '<div><div class="fLbl">DIRECTION</div><select class="fSel" id="ed-' + j.id + '">' +
+            '<option' + (j.dir==='BUY'?' selected':'') + '>BUY</option>' +
+            '<option' + (j.dir==='SELL'?' selected':'') + '>SELL</option>' +
+          '</select></div>' +
+        '</div>' +
+        '<div class="editG3">' +
+          '<div><div class="fLbl">ENTRY</div><input class="fInp" id="ee-' + j.id + '" value="' + j.entry + '" type="text"/></div>' +
+          '<div><div class="fLbl">STOP LOSS</div><input class="fInp" id="es-' + j.id + '" value="' + j.sl + '" type="text"/></div>' +
+          '<div><div class="fLbl">TAKE PROFIT</div><input class="fInp" id="et-' + j.id + '" value="' + j.tp + '" type="text"/></div>' +
+        '</div>' +
+        '<div class="editG2" style="margin-bottom:8px;">' +
+          '<div><div class="fLbl">USD BIAS</div><select class="fSel" id="eb-' + j.id + '">' +
+            '<option' + (j.bias==='USD STRONG'?' selected':'') + '>USD STRONG</option>' +
+            '<option' + (j.bias==='USD WEAK'?' selected':'') + '>USD WEAK</option>' +
+            '<option' + (j.bias==='USD UNCLEAR'?' selected':'') + '>USD UNCLEAR</option>' +
+          '</select></div>' +
+          '<div><div class="fLbl">NOTES</div><input class="fInp" id="en-' + j.id + '" value="' + (j.note||'') + '" type="text"/></div>' +
+        '</div>' +
+        '<div class="eBtns">' +
+          '<button class="btnESave" onclick="saveEdit(' + j.id + ')">SAVE</button>' +
+          '<button class="btnEDel" onclick="delEntry(' + j.id + ')">DELETE</button>' +
+          '<button class="btnECls" onclick="toggleEdit(' + j.id + ')">CLOSE</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function toggleEdit(id) {
+  const ep = document.getElementById('ep-' + id);
+  const ex = document.getElementById('jexp-' + id);
+  if (!ep) return;
+  const open = ep.style.display === 'block';
+  document.querySelectorAll('.editPanel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('[id^="jexp-"]').forEach(e => e.textContent = '▼ EDIT');
+  if (!open) { ep.style.display = 'block'; if (ex) ex.textContent = '▲ CLOSE'; }
+}
+
+function saveEdit(id) {
+  const e = journal.find(j => j.id === id);
+  if (!e) return;
+  e.result = document.getElementById('er-' + id).value;
+  e.dir    = document.getElementById('ed-' + id).value;
+  e.entry  = document.getElementById('ee-' + id).value || '—';
+  e.sl     = document.getElementById('es-' + id).value || '—';
+  e.tp     = document.getElementById('et-' + id).value || '—';
+  e.bias   = document.getElementById('eb-' + id).value;
+  e.note   = document.getElementById('en-' + id).value || '';
+  ss('nsv1_jrn', JSON.stringify(journal));
+  renderJrn();
+  addLog(e.pair + ' updated · ' + e.result, 'hi');
+}
+
+function delEntry(id) {
+  if (!confirm('Delete this trade entry?')) return;
+  journal = journal.filter(j => j.id !== id);
+  ss('nsv1_jrn', JSON.stringify(journal));
+  renderJrn();
+  addLog('Entry deleted');
+}
+
+// ══════════════════════════════════════════════
+// INIT — CGN pattern: restore state then start
+// ══════════════════════════════════════════════
+(function() {
+  // 1. Restore API key — if exists, mark saved and enable scan
+  const k = sg('nsv1_key');
+  if (k) { apiKey = k; markKeySaved(); }
+
+  // 2. Restore credits with date check
+  const t = getSAST();
+  const cd = sg('nsv1_cdate');
+  const cu = sg('nsv1_cused');
+  if (cd === t.dateKey && cu) {
+    credUsed = parseInt(cu) || 0;
+  } else {
+    credUsed = 0;
+    ss('nsv1_cdate', t.dateKey);
+    ss('nsv1_cused', '0');
+  }
+  credDate = t.dateKey;
+  updateCredBar();
+
+  // 3. Restore journal
+  const jd = sg('nsv1_jrn');
+  if (jd) { try { journal = JSON.parse(jd); } catch(e) { journal = []; } }
+  renderJrn();
+
+  // 4. Start clock
+  startClock();
+
+  // 5. Scan button state
+  updateScanBtn();
+
+  // 6. Ready log
+  addLog('NOVICE STRATEGY V.01 — ready', 'hi');
+  if (!apiKey) addLog('Enter and SAVE your 12data API key to begin scanning', 'warn');
+  else         addLog('API key loaded · Select pairs and press SCAN', 'hi');
+})();
+</script>
+</body>
+</html>
